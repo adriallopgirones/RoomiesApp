@@ -1,0 +1,13 @@
+{% if purchases %}
+    {{purchases}}
+    <ul>
+        {% for purchase in purchases %}
+            <li>{{ purchase.product_name }}------{{purchase.product_price}}$</li>
+        {% endfor %}
+    </ul>
+
+{% else %}
+    <p>No purchases are available.</p>
+{% endif %}
+
+<a href="{% url 'shared_list:new_purchase'%}"> Add a new Purchase</a>
