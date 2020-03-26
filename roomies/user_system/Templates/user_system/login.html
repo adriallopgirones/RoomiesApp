@@ -1,0 +1,10 @@
+<h2>
+    Login Here
+</h2>
+
+ <form method="post">
+{% csrf_token %}
+{{form}}
+<p>Don't have an accoount? Create one <a href="../signup">here</a></p>
+<button type="submit">Login</button>
+</form>

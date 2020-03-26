@@ -1,13 +1,21 @@
-{% if purchases %}
-    {{purchases}}
-    <ul>
-        {% for purchase in purchases %}
-            <li>{{ purchase.product_name }}------{{purchase.product_price}}$</li>
-        {% endfor %}
-    </ul>
+{% include "user_information.html" %}
+
+{% if sharedlist is True %}
+    {% if purchases %}
+        {{purchases}}
+        <ul>
+            {% for purchase in purchases %}
+                <li>{{ purchase.product_name }}------{{purchase.product_price}}$</li>
+            {% endfor %}
+        </ul>
+
+    {% else %}
+        <p>No purchases are available.</p>
+    {% endif %}
+
+    <a href="{% url 'shared_list:new_purchase'%}"> Add a new Purchase</a>
 
 {% else %}
-    <p>No purchases are available.</p>
+    <div> No shared list </div>
+    <div> create one <a href="{% url 'shared_list:new_purchases_list'%}">here</a> </div>
 {% endif %}
-
-<a href="{% url 'shared_list:new_purchase'%}"> Add a new Purchase</a>

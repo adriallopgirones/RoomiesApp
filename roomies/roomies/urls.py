@@ -16,8 +16,11 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from user_system import views as user_system_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', user_system_views.login_request),
     path('shared_list/', include('shared_list.urls')),
+    path('user_system/', include('user_system.urls')),
 ]

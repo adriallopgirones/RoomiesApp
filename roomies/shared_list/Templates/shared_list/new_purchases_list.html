@@ -1,0 +1,5 @@
+<form action="/shared_list/new_purchases_list/" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit">
+</form>
