@@ -1,4 +1,11 @@
 <form action="/user_system/join_group/" method="post">
+    {% for message in messages %}
+        <div class="alert alert-success">
+            <a class="close" href="#" data-dismiss="alert">×</a>
+                {{ message }}
+        </div>
+    {% endfor %}
+
     {% csrf_token %}
     {{ form }}
     <input type="submit" value="Submit">

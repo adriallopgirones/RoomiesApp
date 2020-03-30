@@ -32,6 +32,7 @@ AUTH_USER_MODEL = 'user_system.User'
 # Application definition
 
 INSTALLED_APPS = [
+    'django_select2',
     'shared_list.apps.SharedListConfig',
     'user_system.apps.UserSystemConfig',
     'django.contrib.admin',

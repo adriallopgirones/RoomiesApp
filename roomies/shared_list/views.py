@@ -12,10 +12,9 @@ def index(request):
 
 def purchases_list(request):
 
-    update_group_manager(request)
-
     try:
         sl = SharedList.objects.get(group_id=request.user.group_id)
+        update_group_manager(request)
 
     except SharedList.DoesNotExist:
         sl = None
@@ -40,10 +39,9 @@ def new_purchase(request):
         form = PurchaseForm(request.POST)
         if form.is_valid():
             product_name = form.cleaned_data['product_name']
-            product_price = form.cleaned_data['product_price']
             user = request.user
             sl = SharedList.objects.get(group_id=user.group_id)
-            p = Purchase(user=user, shared_list=sl, product_name=product_name, product_price=product_price)
+            p = Purchase(user=user, shared_list=sl, product_name=product_name)
             p.save()
 
             return HttpResponseRedirect('../../shared_list')
@@ -69,21 +67,30 @@ def delete_purchase(request, pk):
 def pay_purchase(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
     if request.method == 'POST':
-        form = PayPurchaseForm(request.POST)
+        form = PayPurchaseForm(request.POST, user=request.user)
         if form.is_valid():
+            User = get_user_model()
             price = form.cleaned_data['price']
+            payer = form.cleaned_data['payer']
+            receivers = form.cleaned_data['receivers']
+            receivers = repr([str(r.username) for r in receivers])
+            purchase.user = User.objects.get(username = payer)
+            purchase.receivers = receivers
             purchase.purchased = True
             purchase.product_price = price
             purchase.save()
-            User = get_user_model()
-            user = User.objects.get(username=request.user)
-            user.debt = user.debt + purchase.product_price
-            user.save()
             update_group_manager(request)
+            debts_table = GroupManagerInstance.GM.update_debts()
+            users = User.objects.filter(group_id=request.user.group_id)
+
+            for user in users:
+                user.debt = debts_table[user.username]
+                user.save()
+
             return HttpResponseRedirect('../../')
 
     else:
-        form = PayPurchaseForm()
+        form = PayPurchaseForm(user=request.user)
 
     return render(request, 'shared_list/pay_purchase.html', {'form': form, 'purchase_id': purchase.id})
 
@@ -93,5 +100,6 @@ def update_group_manager(request):
     user = User.objects.get(username=request.user)
     users = User.objects.filter(group_id=user.group_id)
     Purchase = apps.get_model('shared_list', 'Purchase')
-    purchases = [Purchase.objects.filter(user=u) for u in users]
+    SharedList = apps.get_model('shared_list', 'SharedList')
+    purchases = Purchase.objects.filter(shared_list=SharedList.objects.get(group_id=user.group_id))
     GroupManagerInstance.GM.update_group(users, purchases, user.group_id)

@@ -5,6 +5,13 @@
  <form method="post">
 {% csrf_token %}
 {{form}}
-<p>Don't have an account? Create one <a href="../signup">here</a></p>
+
+{% for message in messages %}
+    <div class="alert alert-success">
+        <a class="close" href="#" data-dismiss="alert">×</a>
+            {{ message }}
+    </div>
+{% endfor %}
+<p>Don't have an account? Create one <a href="{% url 'user_system:signup'%}">here</a></p>
 <button type="submit">Login</button>
 </form>

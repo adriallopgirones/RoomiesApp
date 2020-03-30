@@ -5,6 +5,7 @@ from .forms import SignUpForm, JoinGroupForm, NewGroupForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.apps import apps
+from django.contrib import messages
 import GroupManagerInstance
 from shared_list.models import SharedList
 
@@ -26,8 +27,6 @@ def SignUp(request):
                     return redirect('../../shared_list')
                 else:
                     print('incorrect')
-
-            return redirect('.')
         else:
             form = SignUpForm()
 
@@ -50,9 +49,9 @@ def login_request(request):
                         new_group_manager(request)
                     return redirect('../../shared_list')
                 else:
-                    print('incorrect')
+                    return redirect('.')
             else:
-                print('incorrect2')
+                messages.error(request,'username or password not correct')
         form = AuthenticationForm()
 
         return render(request, 'user_system/login.html', {"form" : form})
@@ -67,19 +66,22 @@ def join_group(request):
         if form.is_valid():
             User = get_user_model()
             user = User.objects.get(username=request.user)
-            if user is not None:
-                group_id = form.cleaned_data['group_id']
-                user.group_id = group_id
-                user.is_grouped = True
-                user.save()
-                new_group_manager(request)
-                return redirect('../../shared_list')
+            group_id = form.cleaned_data['group_id']
+            if len(User.objects.filter(group_id=group_id)) > 0:
+                if user is not None:
+                    user.group_id = group_id
+                    user.is_grouped = True
+                    user.save()
+                    new_group_manager(request)
+                    return redirect('../../shared_list')
+                else:
+                    print('incorrect')
             else:
-                print('incorrect')
+                messages.error(request,'This group does not exist')
         else:
             print('incorrect2')
-
-    form = JoinGroupForm()
+    else:
+        form = JoinGroupForm()
 
     return render(request, 'user_system/join_group.html', {"form": form})
 
@@ -104,9 +106,10 @@ def new_group(request):
 def new_group_manager(request):
     User = get_user_model()
     user = User.objects.get(username=request.user)
-    users = User.objects.filter(group_id = user.group_id)
+    users = User.objects.filter(group_id=user.group_id)
     Purchase = apps.get_model('shared_list', 'Purchase')
-    purchases = [Purchase.objects.filter(user=u) for u in users]
+    SharedList = apps.get_model('shared_list', 'SharedList')
+    purchases = Purchase.objects.filter(shared_list=SharedList.objects.get(group_id=user.group_id))
     GroupManagerInstance.GM.update_group(users, purchases, user.group_id)
 
 
