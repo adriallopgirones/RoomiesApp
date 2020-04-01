@@ -37,22 +37,15 @@ def purchases_list(request):
 
 def new_purchase(request):
     if request.method == 'POST':
-        form = PurchaseForm(request.POST)
-        if form.is_valid():
-            product_name = form.cleaned_data['product_name']
-            user = request.user
-            sl = SharedList.objects.get(group_id=user.group_id)
-            p = Purchase(user=user, shared_list=sl, product_name=product_name)
-            p.save()
-
-            return HttpResponseRedirect('../../shared_list')
-
-    else:
-        form = PurchaseForm()
+        product_name = request.POST['product_name']
+        user = request.user
+        sl = SharedList.objects.get(group_id=user.group_id)
+        p = Purchase(user=user, shared_list=sl, product_name=product_name)
+        p.save()
 
     update_group_manager(request)
 
-    return render(request, 'shared_list/new_purchase.html', {'form': form})
+    return HttpResponseRedirect('../../shared_list')
 
 def delete_purchase(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)

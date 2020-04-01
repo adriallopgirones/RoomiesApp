@@ -22,9 +22,9 @@ class GroupManager():
         debts_table[prior_purchase.user.username] -= prior_purchase.product_price
         debts_table[edited_purchased.user.username] += edited_purchased.product_price
         for receiver in eval(prior_purchase.receivers):
-            debts_table[receiver] += prior_purchase.product_price / len(eval(prior_purchase.receivers))
+            debts_table[receiver] += round(prior_purchase.product_price / len(eval(prior_purchase.receivers)), 2)
         for receiver in eval(edited_purchased.receivers):
-            debts_table[receiver] -= edited_purchased.product_price / len(eval(edited_purchased.receivers))
+            debts_table[receiver] -= round(edited_purchased.product_price / len(eval(edited_purchased.receivers)), 2)
 
         return debts_table
 
@@ -33,7 +33,7 @@ class GroupManager():
         new_purchase = [p for p in self.purchases if p.id == purchase_id][0]
         debts_table[new_purchase.user.username] += new_purchase.product_price
         for receiver in eval(new_purchase.receivers):
-            debts_table[receiver] -= new_purchase.product_price / len(eval(new_purchase.receivers))
+            debts_table[receiver] -= round(new_purchase.product_price / len(eval(new_purchase.receivers)), 2)
 
         return debts_table
 

@@ -1,42 +1,103 @@
-{% include "user_information.html" %}
+{% load static %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/shared_list.css' %}" />
+    <script src="{% static 'js/functions.js' %}"></script>
+</head>
 
-{% if sharedlist is True %}
-    {% if purchases %}
-        {{purchases}}
-        <ul>
-            {% for purchase in purchases %}
-                <form action="{% url 'shared_list:delete_purchase' purchase.id %}" method="post">
-                    {% if purchase.purchased is True %}
-                        <li><strike>{{ purchase.product_name }}------{{purchase.product_price}}$</strike></li>
-                        <a href="edit_purchase/{{purchase.id}}"> Edit</a>
-                    {% else %}
-                        <li>{{ purchase.product_name}}</li>
-                        <a href="pay_purchase/{{purchase.id}}"> I paid for it</a>
-                    {% endif %}
+<body>
+    <div class="container">
+        {% include "user_information.html" %}
 
-                    {% csrf_token %}
+        {% if sharedlist is True %}
 
-                    <input type="submit" value="delete purchase">
-                </form>
-            {% endfor %}
-        </ul>
+            <form action="{% url 'shared_list:new_purchase'%}" method="post">
+                {% csrf_token %}
+                <p>
+                    <label for="new-task">Add item to the shopping list</label>
+                        <input id="new-task" type="text" name="product_name">
+                    <button type="submit">Add</button>
+                </p>
+            </form>
 
-    {% else %}
-        <p>No purchases are available.</p>
-    {% endif %}
+            {% if purchases %}
 
-    <a href="{% url 'shared_list:new_purchase'%}"> Add a new Purchase</a>
+                <h3>
+                    To buy
+                </h3>
+                <ul id="incomplete-tasks">
+                    {% for purchase in purchases %}
+                        {% if purchase.purchased is not True %}
+                            <li>
+                                <label>
+                                    {{ purchase.product_name}}
+                                </label>
+                                <form action="{% url 'shared_list:pay_purchase' purchase.id %}">
+                                    {% csrf_token %}
+                                    <button class="pay" type="submit" > Paied </button>
+                                </form>
+                                <form action="{% url 'shared_list:delete_purchase' purchase.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button class="delete" type="submit">Delete</button>
+                                </form>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                <h3>
+                Historic <button class="edit" onclick="display_paied_purchases()">+</button>
+                </h3>
+                <div id="display-paied-purchases">
 
-{% else %}
-    <div> No group </div>
-    <div> create one <a href="{% url 'user_system:new_group'%}">here</a> </div>
-    <div> Join one <a href="{% url 'user_system:join_group'%}">here</a></div>
-{% endif %}
+                    <ul id="completed-tasks">
+                        {% for purchase in purchases %}
+                            {% if purchase.purchased is True%}
+                                <li>
+                                    <label>
+                                        {{ purchase.product_name }} {{purchase.product_price}}$
+                                    </label>
+                                    <form action="{% url 'shared_list:edit_purchase' purchase.id %}">
+                                        {% csrf_token %}
+                                        <button class="edit" type="submit" > Edit </button>
+                                    </form>
+                                    <form action="{% url 'shared_list:delete_purchase' purchase.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button class="delete" type="submit">Delete</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                         {% endfor %}
+                    </ul>
+                </div>
 
-{% if debts_table is not None %}
-<ul>
-{% for key, value in debts_table.items %}
-  <li>{{key}} <-> {{value}}</li>
-{% endfor %}
-</ul>
-{%endif%}
+            {% else %}
+                <p>No purchases are available.</p>
+            {% endif %}
+
+
+        {% else %}
+            <div> No group </div>
+            <div> create one <a href="{% url 'user_system:new_group'%}">here</a> </div>
+            <div> Join one <a href="{% url 'user_system:join_group'%}">here</a></div>
+        {% endif %}
+
+
+        <h3>
+                Debts table <button class="edit" onclick="display_debt_table()">+</button>
+        </h3>
+        {% if debts_table is not None %}
+            <div id="display-debt-table">
+                <ul>
+                {% for key, value in debts_table.items %}
+                  <li>
+                      {{cssclass}}
+                      <label>
+                          <p>{{key}}</p> {% if value < 0%}<p class="negative">{{value}}$</p> {%else%} <p class="positive">{{value}}$</p> {%endif%}
+                      </label>
+                  </li>
+                {% endfor %}
+                </ul>
+            </div>
+        {%endif%}
+
+    </div>
+</body>
