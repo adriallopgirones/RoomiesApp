@@ -8,12 +8,14 @@
                 <form action="{% url 'shared_list:delete_purchase' purchase.id %}" method="post">
                     {% if purchase.purchased is True %}
                         <li><strike>{{ purchase.product_name }}------{{purchase.product_price}}$</strike></li>
+                        <a href="edit_purchase/{{purchase.id}}"> Edit</a>
                     {% else %}
                         <li>{{ purchase.product_name}}</li>
+                        <a href="pay_purchase/{{purchase.id}}"> I paid for it</a>
                     {% endif %}
 
                     {% csrf_token %}
-                    <a href="pay_purchase/{{purchase.id}}"> I paid for it</a>
+
                     <input type="submit" value="delete purchase">
                 </form>
             {% endfor %}

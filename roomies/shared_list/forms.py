@@ -9,11 +9,11 @@ class PurchaseForm(forms.Form):
 class PurchasesListForm(forms.Form):
     name = forms.CharField(label='list name', max_length=100)
 
-class PayPurchaseForm(forms.Form):
+class EditPurchaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
         print(kwargs)
         user = kwargs.pop('user')
-        super(PayPurchaseForm, self).__init__(*args, **kwargs)
+        super(EditPurchaseForm, self).__init__(*args, **kwargs)
         self.fields['receivers'] = forms.ModelMultipleChoiceField(
             label='Who are the receivers?',
             queryset=get_user_model().objects.filter(group_id = user.group_id),

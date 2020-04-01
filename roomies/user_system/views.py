@@ -19,7 +19,6 @@ def SignUp(request):
                 username = form.cleaned_data.get('username')
                 password = form.cleaned_data.get('password1')
                 form = form.save(commit=False)
-                form.group_id = generate_id()
                 form.save()
                 user = authenticate(username=username, password=password)
                 if user is not None:
@@ -90,10 +89,12 @@ def new_group(request):
         form = NewGroupForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
-            sl = SharedList(name=name, group_id=request.user.group_id)
+            group_id = generate_id()
+            sl = SharedList(name=name, group_id=group_id)
             sl.save()
             User = get_user_model()
             user = User.objects.get(username=request.user)
+            user.group_id = group_id
             user.is_grouped = True
             user.save()
             new_group_manager(request)

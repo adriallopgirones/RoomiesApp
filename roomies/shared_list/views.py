@@ -2,10 +2,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.template.response import TemplateResponse
 from .models import Purchase, SharedList
-from .forms import PurchaseForm, PayPurchaseForm
+from .forms import PurchaseForm, EditPurchaseForm
 from django.contrib.auth import get_user_model
 from django.apps import apps
 import GroupManagerInstance
+import copy
 
 def index(request):
     return HttpResponse("This is the index")
@@ -61,28 +62,27 @@ def delete_purchase(request, pk):
         return HttpResponseRedirect('../../')
 
     update_group_manager(request)
-
     return HttpResponseRedirect('../../')
 
-def pay_purchase(request, pk):
+def edit_purchase(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)
+    prior_purchase = copy.deepcopy(purchase)
     if request.method == 'POST':
-        form = PayPurchaseForm(request.POST, user=request.user)
+        form = EditPurchaseForm(request.POST, user=request.user)
         if form.is_valid():
             User = get_user_model()
             price = form.cleaned_data['price']
             payer = form.cleaned_data['payer']
             receivers = form.cleaned_data['receivers']
             receivers = repr([str(r.username) for r in receivers])
-            purchase.user = User.objects.get(username = payer)
+            purchase.user = User.objects.get(username=payer)
             purchase.receivers = receivers
             purchase.purchased = True
             purchase.product_price = price
             purchase.save()
             update_group_manager(request)
-            debts_table = GroupManagerInstance.GM.update_debts()
             users = User.objects.filter(group_id=request.user.group_id)
-
+            debts_table = GroupManagerInstance.GM.update_debts_edit_purchase(purchase.id, prior_purchase)
             for user in users:
                 user.debt = debts_table[user.username]
                 user.save()
@@ -90,10 +90,38 @@ def pay_purchase(request, pk):
             return HttpResponseRedirect('../../')
 
     else:
-        form = PayPurchaseForm(user=request.user)
+        form = EditPurchaseForm(user=request.user)
+
+    return render(request, 'shared_list/edit_purchase.html', {'form': form, 'purchase_id': purchase.id})
+
+def pay_purchase(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    if request.method == 'POST':
+        form = EditPurchaseForm(request.POST, user=request.user)
+        if form.is_valid():
+            User = get_user_model()
+            price = form.cleaned_data['price']
+            payer = form.cleaned_data['payer']
+            receivers = form.cleaned_data['receivers']
+            receivers = repr([str(r.username) for r in receivers])
+            purchase.user = User.objects.get(username=payer)
+            purchase.receivers = receivers
+            purchase.purchased = True
+            purchase.product_price = price
+            purchase.save()
+            update_group_manager(request)
+            users = User.objects.filter(group_id=request.user.group_id)
+            debts_table = GroupManagerInstance.GM.update_debts_pay_purchase(purchase.id)
+            for user in users:
+                user.debt = debts_table[user.username]
+                user.save()
+
+            return HttpResponseRedirect('../../')
+
+    else:
+        form = EditPurchaseForm(user=request.user)
 
     return render(request, 'shared_list/pay_purchase.html', {'form': form, 'purchase_id': purchase.id})
-
 
 def update_group_manager(request):
     User = get_user_model()
